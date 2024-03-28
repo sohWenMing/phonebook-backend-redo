@@ -1,0 +1,17 @@
+POST http://localhost:3000/persons
+Content-Type: application/json
+
+{
+    "name": "12345667",
+    "number": "123232323"
+}
+
+#####
+
+PUT http://localhost:3000/persons/66051ed6e8ca5b2cbc02b532
+Content-Type: application/json
+
+{
+    "name": "New Person 1",
+    "number": "123-245.68"
+}
