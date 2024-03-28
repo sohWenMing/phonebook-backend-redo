@@ -4,6 +4,17 @@ const baseUrl = '/persons'
 const {Person} = require('../models/index')
 
 
+function validateInputs(request) {
+       
+        if(!request.body.name || !request.body.number || request.body.name.length < 5 || request.body.number.length < 5) {
+        const error = new Error("mandatory information was not filled");
+        error.name = "InputValidationError"
+        throw error;
+        }
+}
+
+
+
 
 router.get(baseUrl, async(req, res, next) => {
     try {
@@ -17,17 +28,16 @@ router.get(baseUrl, async(req, res, next) => {
 })
 
 router.post(`${baseUrl}`, async(req, res, next) => {
-    if(!req.body.name || !req.body.number || req.body.number.length < 5 || req.body.number.length < 5) {
-        res.status(400).send("Required information was not filled in");
-        return;
-    }
+   
     const personToSave = new Person({
         name: req.body.name,
         number: req.body.number
     })
     try {
+        validateInputs(req);
         const response =  await personToSave.save()
-        res.send(`${response.name} was successfully saved to the database`);   
+        const allPersons = await Person.find({});
+        res.json({allPersons}); 
     }
     catch(error) {
         next(error)
@@ -36,18 +46,28 @@ router.post(`${baseUrl}`, async(req, res, next) => {
 
 router.put(`${baseUrl}/:id`, async(req, res, next) => {
     try {
-        const foundPerson = await Person.findByIdAndUpdate(req.params.id, {
+        validateInputs(req);
+        const updatedPerson = await Person.findByIdAndUpdate(req.params.id, {
             $set: {
                 name: req.body.name,
                 number: req.body.number
             }
             
         });
-        console.log(foundPerson);
-        res.status(200).send(`${foundPerson.name} was successfully deleted`);
+        console.log(updatedPerson);
+        const allPersons = await Person.find({})
+        res.json({
+            updatedPerson,
+            allPersons
+        });
     }
     catch(error) {
-       const newError = new Error("The person was deleted before");
+        console.log("errorname: ", error.name);
+        if(error.name === "InputValidationError") {
+
+            next(error);
+        }
+        const newError = new Error("The person was deleted before");
         next(newError);
     }
 })
@@ -59,6 +79,7 @@ router.delete(`${baseUrl}/:id`, async(req, res, next) => {
         if(!deletedPerson) {
             throw new Error("Person was already previously deleted")
         }
+        res.json({deletedPerson});
     }
     catch(error){
         next(error)

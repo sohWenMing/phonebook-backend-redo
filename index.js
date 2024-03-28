@@ -3,6 +3,7 @@ const app = express();
 const router = require('./router/router')
 const MongoConnection = require('./models/index')
 const PORT = process.env.PORT || 3000;
+const cors = require('cors')
 
 
 
@@ -10,6 +11,8 @@ const PORT = process.env.PORT || 3000;
 MongoConnection.connectToDatabase()
 .then(() => {
     console.log("successfully connected!");
+    app.use(express.static('dist'));
+    app.use(cors());
     app.use(express.json());
     app.use(router);
     
